@@ -2,6 +2,7 @@ import AVFoundation
 import AppKit
 import Combine
 import LoudOrNotCore
+import QuartzCore
 
 /// Single owner of runtime state: decides whether we are armed, turns the smoothed mic
 /// level into a glow intensity, and pushes that to the overlay and the menu bar panel.
@@ -42,6 +43,9 @@ final class Coordinator: ObservableObject {
     private let monitor = MicLevelMonitor()
     private let usageWatcher = MicUsageWatcher()
     private let overlay = GlowOverlayController()
+    private let beeper = BeepPlayer()
+    private let outputRoute = OutputRoute()
+    private var beepThrottle = BeepThrottle()
     private var hysteresis = Hysteresis()
     private var cancellables = Set<AnyCancellable>()
 
@@ -99,6 +103,17 @@ final class Coordinator: ObservableObject {
         let engaged = hysteresis.update(db: db, warnDB: settings.warnDB)
         let level = LevelMath.intensity(forDB: db, warnDB: settings.warnDB, loudDB: settings.loudDB)
         setGlow(engaged: engaged, intensity: engaged ? level : 0)
+        warnAudibly(isLoud: db >= settings.loudDB)
+    }
+
+    /// Headphones only. A beep through the speakers would carry into the room, which is the
+    /// exact thing this app exists to prevent. The conditions are ordered so the route is
+    /// only queried once you are in the red, and the throttle is only spent on a real beep.
+    private func warnAudibly(isLoud: Bool) {
+        guard isLoud, outputRoute.isHeadphones, beepThrottle.shouldBeep(now: CACurrentMediaTime())
+        else { return }
+        log("beep")
+        beeper.play()
     }
 
     private func setGlow(engaged: Bool, intensity: Double) {
@@ -168,6 +183,8 @@ final class Coordinator: ObservableObject {
     private func disarm() {
         monitor.stop()
         hysteresis = Hysteresis()
+        // The next meeting should be able to warn you straight away.
+        beepThrottle.reset()
         levelDB = LevelMath.floorDB
         setGlow(engaged: false, intensity: 0)
     }

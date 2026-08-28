@@ -2,7 +2,8 @@
 
 A menu bar app that pulses a glow around the edge of every screen when you start
 talking too loudly on a video call. Slow yellow when you first cross the line,
-fast red when you are really going.
+fast red when you are really going, plus a discreet beep in your headphones once
+you are properly shouting.
 
 ## Requirements
 
@@ -59,6 +60,19 @@ Loudness is a rolling average over roughly one and a half seconds, gated so that
 silence between sentences does not drag it down and a single cough or laugh cannot
 set it off. The glow also holds on until you drop about 2 dB below the warn
 threshold, so it does not flicker while you hover right at the line.
+
+## The audible warning
+
+When your voice reaches the red threshold and you are wearing headphones, the app plays
+two short rising pips, at most once every 3.5 seconds. The glow only helps if you happen
+to be looking at the screen; the beep is for when you are looking at a person.
+
+It is deliberately limited to headphones. A beep through the speakers would carry into
+the room, which is the exact thing this app exists to prevent. Rather than guess from how
+a device is connected, the app asks CoreAudio what the output stream actually terminates
+in, because a USB headset and a pair of USB desk speakers share a transport type, as do
+Bluetooth earbuds and a Bluetooth speaker. Wired headphones in the built-in jack are
+recognised too, via the data source the built-in device switches to.
 
 ## Listening modes
 
@@ -131,8 +145,8 @@ LOUDORNOT_DEBUG=1 "/Applications/Loud or Not.app/Contents/MacOS/LoudOrNot"
 
 ## Layout
 
-- `Sources/LoudOrNotCore` - pure loudness maths (smoothing, thresholds, hysteresis), unit tested
-- `Sources/LoudOrNot/Audio` - the microphone tap and the CoreAudio mic-usage watcher
+- `Sources/LoudOrNotCore` - pure loudness maths, beep throttling and tone synthesis, unit tested
+- `Sources/LoudOrNot/Audio` - the microphone tap, the mic-usage watcher, headphone detection, beep playback
 - `Sources/LoudOrNot/Overlay` - the per-screen glow windows and their rendering
 - `Sources/LoudOrNot/Menu` - the menu bar panel
 - `Coordinator.swift` - decides when to arm and turns level into glow intensity
