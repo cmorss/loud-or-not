@@ -11,12 +11,19 @@ TEST_FLAGS := -Xswiftc -F -Xswiftc $(DEV_FW) \
 	-Xlinker -rpath -Xlinker $(DEV_FW) \
 	-Xlinker -rpath -Xlinker $(DEV_LIB)
 
-.PHONY: all identity app install run stop test clean uninstall
+.PHONY: all identity icon app install run stop test clean uninstall
 
 all: install
 
 identity:
 	@./Scripts/create-identity.sh
+
+# The generated .icns is committed, so this only needs rerunning when the art changes.
+icon:
+	@swift Scripts/make-icon.swift build/AppIcon.iconset
+	@iconutil -c icns build/AppIcon.iconset -o Resources/AppIcon.icns
+	@rm -rf build/AppIcon.iconset
+	@echo "Wrote Resources/AppIcon.icns"
 
 app: identity
 	@./Scripts/bundle.sh

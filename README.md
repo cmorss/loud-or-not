@@ -27,6 +27,7 @@ off and back on once so it registers the new location.
 | `make app` | Build and sign into `build/` without installing |
 | `make run` | Build and launch from `build/` without installing |
 | `make identity` | Create the signing identity (the build does this for you) |
+| `make icon` | Redraw `Resources/AppIcon.icns` after editing the icon script |
 | `make test` | Run the unit tests |
 | `make stop` | Quit a running copy |
 | `make uninstall` | Remove it from `/Applications` |
@@ -86,6 +87,18 @@ LOUDORNOT_CAPTURABLE=1 "/Applications/Loud or Not.app/Contents/MacOS/LoudOrNot"
 The glow is drawn on every connected display and follows monitors being plugged in
 or unplugged. It sits above full-screen apps and ignores mouse clicks, so it never
 gets in the way.
+
+## The icon
+
+`Scripts/make-icon.swift` draws the icon rather than shipping a pile of PNGs: a dark
+screen with its border glowing in the same yellow-to-red ramp the overlay uses, around a
+voice waveform whose peak has gone red. Each size is drawn at its own resolution instead
+of being downsampled from one large image, because the rim glow and the thin bars turn to
+mush when they are resampled, and the 16pt version drops from five bars to three so it
+still reads in the Finder sidebar.
+
+The generated `Resources/AppIcon.icns` is committed, so only run `make icon` if you
+change the artwork.
 
 ## Code signing and the microphone permission
 

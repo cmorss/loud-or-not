@@ -13,6 +13,7 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/LoudOrNot" "$APP/Contents/MacOS/LoudOrNot"
 cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
+cp "$ROOT/Resources/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
 
 # Prefer the stable self-signed identity, which keeps the microphone permission
 # across rebuilds. Fall back to ad-hoc so the build still works without it.

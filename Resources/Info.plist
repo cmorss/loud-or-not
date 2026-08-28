@@ -8,8 +8,10 @@
 	<string>Loud or Not</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.cmorss.loudornot</string>
-	<key>CFBundleExecutable</key>
-	<string>LoudOrNot</string>
+    <key>CFBundleExecutable</key>
+    <string>LoudOrNot</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
