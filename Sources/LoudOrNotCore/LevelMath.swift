@@ -69,6 +69,33 @@ public struct LoudnessSmoother {
     }
 }
 
+/// Decides when a new reading is worth handing to the UI.
+///
+/// Readings arrive about forty times a second, and republishing is not free even when the
+/// value has not moved: it invalidates every view observing it. That is what made the app
+/// burn CPU while sitting in silence at the noise floor, where the level is a constant.
+public struct LevelPublishGate {
+    public var minimumIntervalSeconds: Double
+    public var minimumChangeDB: Double
+    private var publishedDB: Double?
+    private var publishedAt: Double = -.infinity
+
+    /// The meter shows a rolling average over more than a second, so twenty updates a second
+    /// looks identical to forty, and changes under a quarter of a decibel are invisible.
+    public init(updatesPerSecond: Double = 20, minimumChangeDB: Double = 0.25) {
+        minimumIntervalSeconds = 1 / updatesPerSecond
+        self.minimumChangeDB = minimumChangeDB
+    }
+
+    public mutating func shouldPublish(db: Double, now: Double) -> Bool {
+        if let publishedDB, abs(db - publishedDB) < minimumChangeDB { return false }
+        guard now - publishedAt >= minimumIntervalSeconds else { return false }
+        publishedDB = db
+        publishedAt = now
+        return true
+    }
+}
+
 /// Latching so the glow does not flicker on and off while you hover right at the threshold.
 public struct Hysteresis {
     public var releaseMarginDB: Double

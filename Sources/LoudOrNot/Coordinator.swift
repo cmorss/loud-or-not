@@ -33,12 +33,13 @@ final class Coordinator: ObservableObject {
         }
     }
 
-    @Published private(set) var levelDB: Double = LevelMath.floorDB
-    @Published private(set) var intensity: Double = 0
+    // Only slow-moving state is published here. The level itself goes to `meter`, which the
+    // meter view observes on its own, so a new reading does not invalidate the whole panel.
     @Published private(set) var isGlowing = false
     @Published private(set) var state: ArmState = .disabled
 
     let settings: Settings
+    let meter = MeterLevel()
 
     private let monitor = MicLevelMonitor()
     private let usageWatcher = MicUsageWatcher()
@@ -99,7 +100,7 @@ final class Coordinator: ObservableObject {
     }
 
     private func handle(levelDB db: Double) {
-        levelDB = db
+        meter.update(db: db)
         let engaged = hysteresis.update(db: db, warnDB: settings.warnDB)
         let level = LevelMath.intensity(forDB: db, warnDB: settings.warnDB, loudDB: settings.loudDB)
         setGlow(engaged: engaged, intensity: engaged ? level : 0)
@@ -110,15 +111,20 @@ final class Coordinator: ObservableObject {
     /// exact thing this app exists to prevent. The conditions are ordered so the route is
     /// only queried once you are in the red, and the throttle is only spent on a real beep.
     private func warnAudibly(isLoud: Bool) {
-        guard isLoud, outputRoute.isHeadphones, beepThrottle.shouldBeep(now: CACurrentMediaTime())
-        else { return }
+        guard isLoud, settings.beepEnabled else { return }
+        guard outputRoute.isHeadphones else {
+            log("loud, but output is not headphones")
+            return
+        }
+        guard beepThrottle.shouldBeep(now: CACurrentMediaTime()) else { return }
         log("beep")
         beeper.play()
     }
 
     private func setGlow(engaged: Bool, intensity: Double) {
-        isGlowing = engaged
-        self.intensity = intensity
+        // Both are compared before assigning: these run on every audio buffer, and isGlowing
+        // is published, so writing it unconditionally would invalidate the UI constantly.
+        if isGlowing != engaged { isGlowing = engaged }
         overlay.setState(engaged: engaged, intensity: intensity)
     }
 
@@ -185,7 +191,7 @@ final class Coordinator: ObservableObject {
         hysteresis = Hysteresis()
         // The next meeting should be able to warn you straight away.
         beepThrottle.reset()
-        levelDB = LevelMath.floorDB
+        meter.update(db: LevelMath.floorDB)
         setGlow(engaged: false, intensity: 0)
     }
 }

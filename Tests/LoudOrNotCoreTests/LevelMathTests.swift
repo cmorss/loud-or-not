@@ -42,6 +42,40 @@ import Testing
     #expect(smoother.valueDB < -60)
 }
 
+@Test func publishGateStaysQuietWhenTheLevelIsNotMoving() {
+    var gate = LevelPublishGate(updatesPerSecond: 20, minimumChangeDB: 0.25)
+    #expect(gate.shouldPublish(db: -80, now: 100) == true)
+
+    // Silence sits at the floor forever, which is exactly when the app used to burn CPU.
+    for step in 1...200 {
+        #expect(gate.shouldPublish(db: -80, now: 100 + Double(step) * 0.023) == false)
+    }
+}
+
+@Test func publishGateRateLimitsAChangingLevel() {
+    var gate = LevelPublishGate(updatesPerSecond: 20, minimumChangeDB: 0.25)
+    #expect(gate.shouldPublish(db: -40, now: 100) == true)
+    // Moving, but sooner than the update interval allows.
+    #expect(gate.shouldPublish(db: -30, now: 100.02) == false)
+    #expect(gate.shouldPublish(db: -30, now: 100.06) == true)
+}
+
+@Test func publishGateIgnoresChangesTooSmallToSee() {
+    var gate = LevelPublishGate(updatesPerSecond: 20, minimumChangeDB: 0.25)
+    #expect(gate.shouldPublish(db: -40, now: 100) == true)
+    #expect(gate.shouldPublish(db: -40.1, now: 101) == false)
+    #expect(gate.shouldPublish(db: -40.3, now: 102) == true)
+}
+
+@Test func publishGateLetsSlowDriftThroughEventually() {
+    var gate = LevelPublishGate(updatesPerSecond: 20, minimumChangeDB: 0.25)
+    #expect(gate.shouldPublish(db: -40, now: 100) == true)
+    // Each step is under the threshold, but they accumulate against the published value.
+    #expect(gate.shouldPublish(db: -40.1, now: 101) == false)
+    #expect(gate.shouldPublish(db: -40.2, now: 102) == false)
+    #expect(gate.shouldPublish(db: -40.26, now: 103) == true)
+}
+
 @Test func hysteresisHoldsUntilTheLevelDropsBelowTheMargin() {
     var hysteresis = Hysteresis(releaseMarginDB: 2)
     #expect(hysteresis.update(db: -30, warnDB: -26) == false)

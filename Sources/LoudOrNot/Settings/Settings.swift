@@ -31,6 +31,7 @@ final class Settings: ObservableObject {
     }
     @Published var warnDB: Double { didSet { defaults.set(warnDB, forKey: Key.warnDB) } }
     @Published var loudDB: Double { didSet { defaults.set(loudDB, forKey: Key.loudDB) } }
+    @Published var beepEnabled: Bool { didSet { defaults.set(beepEnabled, forKey: Key.beepEnabled) } }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -39,12 +40,14 @@ final class Settings: ObservableObject {
             Key.activationMode: ActivationMode.alwaysOn.rawValue,
             Key.warnDB: -26.0,
             Key.loudDB: -14.0,
+            Key.beepEnabled: true,
         ])
         isEnabled = defaults.bool(forKey: Key.isEnabled)
         activationMode = ActivationMode(rawValue: defaults.string(forKey: Key.activationMode) ?? "")
             ?? .alwaysOn
         warnDB = defaults.double(forKey: Key.warnDB)
         loudDB = defaults.double(forKey: Key.loudDB)
+        beepEnabled = defaults.bool(forKey: Key.beepEnabled)
     }
 
     /// Thresholds are set by dragging sliders and by grabbing the live level, so they need
@@ -68,5 +71,6 @@ final class Settings: ObservableObject {
         static let activationMode = "activationMode"
         static let warnDB = "warnDB"
         static let loudDB = "loudDB"
+        static let beepEnabled = "beepEnabled"
     }
 }

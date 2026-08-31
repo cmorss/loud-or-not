@@ -41,13 +41,7 @@ struct PanelView: View {
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
 
-            ThresholdMeter(
-                levelDB: coordinator.levelDB,
-                warnDB: settings.warnDB,
-                loudDB: settings.loudDB,
-                setWarnDB: { settings.setWarnDB($0) },
-                setLoudDB: { settings.setLoudDB($0) }
-            )
+            MeterRow(level: coordinator.meter, settings: settings)
 
             Text("Drag the amber and red markers to set your thresholds.")
                 .font(.caption2)
@@ -93,6 +87,10 @@ struct PanelView: View {
                 .toggleStyle(.checkbox)
                 .controlSize(.small)
 
+            Toggle("Beep when loud (headphones only)", isOn: $settings.beepEnabled)
+                .toggleStyle(.checkbox)
+                .controlSize(.small)
+
             Toggle("Launch at login", isOn: $launchAtLogin)
                 .toggleStyle(.checkbox)
                 .controlSize(.small)
@@ -119,6 +117,23 @@ struct PanelView: View {
         case .armed: return coordinator.isGlowing ? .orange : .green
         case .idle, .disabled: return .secondary
         case .needsPermission, .permissionDenied, .unavailable: return .red
+        }
+    }
+
+    /// Its own view so that a new reading redraws the meter alone, rather than every control
+    /// in the panel.
+    private struct MeterRow: View {
+        @ObservedObject var level: MeterLevel
+        @ObservedObject var settings: Settings
+
+        var body: some View {
+            ThresholdMeter(
+                levelDB: level.db,
+                warnDB: settings.warnDB,
+                loudDB: settings.loudDB,
+                setWarnDB: { settings.setWarnDB($0) },
+                setLoudDB: { settings.setLoudDB($0) }
+            )
         }
     }
 

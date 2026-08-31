@@ -65,7 +65,16 @@ threshold, so it does not flicker while you hover right at the line.
 
 When your voice reaches the red threshold and you are wearing headphones, the app plays
 two short rising pips, at most once every 3.5 seconds. The glow only helps if you happen
-to be looking at the screen; the beep is for when you are looking at a person.
+to be looking at the screen; the beep is for when you are looking at a person. There is a
+**Beep when loud** checkbox in the panel to turn it off.
+
+Note that the beep fires at the *red* threshold, not the amber one, so if the two are far
+apart you will see a lot of glow before you ever hear anything.
+
+The audio engine is built for each beep and torn down when it finishes. Holding one open
+kept a CoreAudio render thread and the output device alive for a quarter of a second of
+sound, and an engine started against headphones that later slept or reconnected would stay
+wedged, silently swallowing every beep after that.
 
 It is deliberately limited to headphones. A beep through the speakers would carry into
 the room, which is the exact thing this app exists to prevent. Rather than guess from how
@@ -145,7 +154,7 @@ LOUDORNOT_DEBUG=1 "/Applications/Loud or Not.app/Contents/MacOS/LoudOrNot"
 
 ## Layout
 
-- `Sources/LoudOrNotCore` - pure loudness maths, beep throttling and tone synthesis, unit tested
+- `Sources/LoudOrNotCore` - pure loudness maths, update rate limiting, beep throttling and tone synthesis, unit tested
 - `Sources/LoudOrNot/Audio` - the microphone tap, the mic-usage watcher, headphone detection, beep playback
 - `Sources/LoudOrNot/Overlay` - the per-screen glow windows and their rendering
 - `Sources/LoudOrNot/Menu` - the menu bar panel
