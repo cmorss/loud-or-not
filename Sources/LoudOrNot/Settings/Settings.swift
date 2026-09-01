@@ -1,17 +1,8 @@
 import Foundation
 
-enum ActivationMode: String, CaseIterable, Identifiable {
+enum ActivationMode: String {
     case meetingsOnly
     case alwaysOn
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .meetingsOnly: return "Only during meetings"
-        case .alwaysOn: return "Always on"
-        }
-    }
 
     var explanation: String {
         switch self {

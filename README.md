@@ -83,19 +83,16 @@ in, because a USB headset and a pair of USB desk speakers share a transport type
 Bluetooth earbuds and a Bluetooth speaker. Wired headphones in the built-in jack are
 recognised too, via the data source the built-in device switches to.
 
-## Listening modes
+## When it listens
 
-| Mode | Behaviour |
-| --- | --- |
-| Only during meetings | Listens whenever another app is capturing the microphone |
-| Always on | Listens whenever the app is enabled |
+With **Active during meetings only** ticked, it listens whenever another app is
+capturing the microphone. Left unticked, it listens whenever the app is enabled.
 
-**Only during meetings** watches CoreAudio directly to see which processes are
-recording, rather than guessing from a list of known meeting apps. When nothing is
-recording, the app stops its own audio engine, so the orange microphone indicator
-stays out of your menu bar.
+Meetings are found by asking CoreAudio which processes are recording, rather than by
+guessing from a list of known meeting apps. When nothing is recording, the app stops
+capturing, so the orange microphone indicator stays out of your menu bar.
 
-Ships in **Always on** so it can be tested and calibrated without joining a call.
+Ships unticked so it can be tested and calibrated without joining a call.
 
 ## Which microphone it listens to
 

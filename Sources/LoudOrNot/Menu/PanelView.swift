@@ -66,17 +66,21 @@ struct PanelView: View {
         }
     }
 
+    /// The two modes read as one decision, so they are one checkbox rather than a menu.
+    private var meetingsOnly: Binding<Bool> {
+        Binding(
+            get: { settings.activationMode == .meetingsOnly },
+            set: { settings.activationMode = $0 ? .meetingsOnly : .alwaysOn }
+        )
+    }
+
     private var activationSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             MicrophonePicker(devices: coordinator.inputDevices, settings: settings)
 
-            Picker("Listen", selection: $settings.activationMode) {
-                ForEach(ActivationMode.allCases) { mode in
-                    Text(mode.title).tag(mode)
-                }
-            }
-            .pickerStyle(.menu)
-            .controlSize(.small)
+            Toggle("Active during meetings only", isOn: meetingsOnly)
+                .toggleStyle(.checkbox)
+                .controlSize(.small)
 
             Text(settings.activationMode.explanation)
                 .font(.caption2)
