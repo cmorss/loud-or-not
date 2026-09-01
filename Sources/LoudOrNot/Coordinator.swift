@@ -40,6 +40,7 @@ final class Coordinator: ObservableObject {
 
     let settings: Settings
     let meter = MeterLevel()
+    let inputDevices = AudioInputDevices()
 
     private let monitor = MicLevelMonitor()
     private let usageWatcher = MicUsageWatcher()
@@ -56,11 +57,25 @@ final class Coordinator: ObservableObject {
         monitor.onLevel = { [weak self] db in
             MainActor.assumeIsolated { self?.handle(levelDB: db) }
         }
+        monitor.onFailure = { [weak self] error in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.log("capture failed: \(error.localizedDescription)")
+                self.disarm()
+                self.state = .unavailable(error.localizedDescription)
+            }
+        }
         usageWatcher.onChange = { [weak self] _ in
             MainActor.assumeIsolated { self?.refresh() }
         }
         // objectWillChange fires before the new value lands, so read it on the next turn.
         settings.objectWillChange
+            .sink { [weak self] _ in
+                DispatchQueue.main.async { self?.refresh() }
+            }
+            .store(in: &cancellables)
+        // Your chosen microphone appearing or disappearing changes what we should listen to.
+        inputDevices.objectWillChange
             .sink { [weak self] _ in
                 DispatchQueue.main.async { self?.refresh() }
             }
@@ -176,14 +191,24 @@ final class Coordinator: ObservableObject {
         }
 
         do {
-            try monitor.start()
+            let device = selectedInputDevice
+            try monitor.start(device: device)
             state = .armed(reason)
-            log("armed: \(reason)")
+            log("armed: \(reason) on \(device?.name ?? "system default input")")
         } catch {
             disarm()
             state = .unavailable(error.localizedDescription)
             log("failed to arm: \(error.localizedDescription)")
         }
+    }
+
+    /// Deliberately not the system default input: that follows your headset, and opening a
+    /// Bluetooth headset's microphone drops the whole device into call mode.
+    private var selectedInputDevice: AudioInputChoice? {
+        InputDeviceSelection.resolve(
+            preferredUID: settings.inputDeviceUID.isEmpty ? nil : settings.inputDeviceUID,
+            available: inputDevices.devices
+        )
     }
 
     private func disarm() {

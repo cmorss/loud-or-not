@@ -97,6 +97,22 @@ stays out of your menu bar.
 
 Ships in **Always on** so it can be tested and calibrated without joining a call.
 
+## Which microphone it listens to
+
+The **Microphone** menu in the panel picks the input, so you do not have to go to
+System Settings. It only moves this app: your system input device is left alone, so
+a meeting carries on using whichever microphone it was already on.
+
+It defaults to the built-in microphone rather than to the system default input,
+which matters for two reasons. Opening a Bluetooth headset's microphone drags the
+whole device into its call mode, so simply launching this app would make your music
+and everyone's voices sound worse. The built-in microphone is also the better sensor
+for the question being asked, since it hears the room roughly the way the person
+sitting in it does, rather than from an inch off your cheek.
+
+Unplugging the microphone you picked falls back to the built-in one, and plugging it
+back in returns to it.
+
 ## Notes
 
 The overlay windows are excluded from screen capture, so the glow will not appear
@@ -154,8 +170,8 @@ LOUDORNOT_DEBUG=1 "/Applications/Loud or Not.app/Contents/MacOS/LoudOrNot"
 
 ## Layout
 
-- `Sources/LoudOrNotCore` - pure loudness maths, update rate limiting, beep throttling and tone synthesis, unit tested
-- `Sources/LoudOrNot/Audio` - the microphone tap, the mic-usage watcher, headphone detection, beep playback
+- `Sources/LoudOrNotCore` - pure loudness maths, update rate limiting, input device choice, beep throttling and tone synthesis, unit tested
+- `Sources/LoudOrNot/Audio` - the capture session, the input device list, the mic-usage watcher, headphone detection, beep playback
 - `Sources/LoudOrNot/Overlay` - the per-screen glow windows and their rendering
 - `Sources/LoudOrNot/Menu` - the menu bar panel
 - `Coordinator.swift` - decides when to arm and turns level into glow intensity

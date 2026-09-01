@@ -32,6 +32,10 @@ final class Settings: ObservableObject {
     @Published var warnDB: Double { didSet { defaults.set(warnDB, forKey: Key.warnDB) } }
     @Published var loudDB: Double { didSet { defaults.set(loudDB, forKey: Key.loudDB) } }
     @Published var beepEnabled: Bool { didSet { defaults.set(beepEnabled, forKey: Key.beepEnabled) } }
+    /// Empty means nothing has been chosen, which resolves to the built-in microphone.
+    @Published var inputDeviceUID: String {
+        didSet { defaults.set(inputDeviceUID, forKey: Key.inputDeviceUID) }
+    }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -41,6 +45,7 @@ final class Settings: ObservableObject {
             Key.warnDB: -26.0,
             Key.loudDB: -14.0,
             Key.beepEnabled: true,
+            Key.inputDeviceUID: "",
         ])
         isEnabled = defaults.bool(forKey: Key.isEnabled)
         activationMode = ActivationMode(rawValue: defaults.string(forKey: Key.activationMode) ?? "")
@@ -48,6 +53,7 @@ final class Settings: ObservableObject {
         warnDB = defaults.double(forKey: Key.warnDB)
         loudDB = defaults.double(forKey: Key.loudDB)
         beepEnabled = defaults.bool(forKey: Key.beepEnabled)
+        inputDeviceUID = defaults.string(forKey: Key.inputDeviceUID) ?? ""
     }
 
     /// Thresholds are set by dragging sliders and by grabbing the live level, so they need
@@ -72,5 +78,6 @@ final class Settings: ObservableObject {
         static let warnDB = "warnDB"
         static let loudDB = "loudDB"
         static let beepEnabled = "beepEnabled"
+        static let inputDeviceUID = "inputDeviceUID"
     }
 }

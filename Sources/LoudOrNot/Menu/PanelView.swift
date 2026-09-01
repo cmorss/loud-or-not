@@ -1,3 +1,4 @@
+import LoudOrNotCore
 import ServiceManagement
 import SwiftUI
 
@@ -67,6 +68,8 @@ struct PanelView: View {
 
     private var activationSection: some View {
         VStack(alignment: .leading, spacing: 8) {
+            MicrophonePicker(devices: coordinator.inputDevices, settings: settings)
+
             Picker("Listen", selection: $settings.activationMode) {
                 ForEach(ActivationMode.allCases) { mode in
                     Text(mode.title).tag(mode)
@@ -117,6 +120,39 @@ struct PanelView: View {
         case .armed: return coordinator.isGlowing ? .orange : .green
         case .idle, .disabled: return .secondary
         case .needsPermission, .permissionDenied, .unavailable: return .red
+        }
+    }
+
+    /// Lists microphones so you can switch without a trip to System Settings. Changing it
+    /// only moves this app; it leaves the system's own input device alone, so your meeting
+    /// keeps using whichever microphone it was already on.
+    private struct MicrophonePicker: View {
+        @ObservedObject var devices: AudioInputDevices
+        @ObservedObject var settings: Settings
+
+        var body: some View {
+            Picker("Microphone", selection: selection) {
+                ForEach(devices.devices) { device in
+                    Text(device.name).tag(device.uid)
+                }
+            }
+            .pickerStyle(.menu)
+            .controlSize(.small)
+            .disabled(devices.devices.isEmpty)
+        }
+
+        /// Shows the microphone actually in use, so the default reads as the built-in one
+        /// rather than as a blank until you pick something.
+        private var selection: Binding<String> {
+            Binding(
+                get: {
+                    InputDeviceSelection.resolve(
+                        preferredUID: settings.inputDeviceUID.isEmpty ? nil : settings.inputDeviceUID,
+                        available: devices.devices
+                    )?.uid ?? ""
+                },
+                set: { settings.inputDeviceUID = $0 }
+            )
         }
     }
 
