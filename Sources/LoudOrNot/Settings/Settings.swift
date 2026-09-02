@@ -3,13 +3,6 @@ import Foundation
 enum ActivationMode: String {
     case meetingsOnly
     case alwaysOn
-
-    var explanation: String {
-        switch self {
-        case .meetingsOnly: return "Watches for another app using the microphone."
-        case .alwaysOn: return "Listens whenever Loud or Not is enabled."
-        }
-    }
 }
 
 @MainActor

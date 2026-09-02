@@ -15,7 +15,7 @@ struct PanelView: View {
             Divider()
             meterSection
             Divider()
-            activationSection
+            MicrophonePicker(devices: coordinator.inputDevices, settings: settings)
             Divider()
             footer
         }
@@ -74,22 +74,12 @@ struct PanelView: View {
         )
     }
 
-    private var activationSection: some View {
+    private var footer: some View {
         VStack(alignment: .leading, spacing: 8) {
-            MicrophonePicker(devices: coordinator.inputDevices, settings: settings)
-
             Toggle("Active during meetings only", isOn: meetingsOnly)
                 .toggleStyle(.checkbox)
                 .controlSize(.small)
 
-            Text(settings.activationMode.explanation)
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-        }
-    }
-
-    private var footer: some View {
-        VStack(alignment: .leading, spacing: 8) {
             Toggle("Enabled", isOn: $settings.isEnabled)
                 .toggleStyle(.checkbox)
                 .controlSize(.small)
