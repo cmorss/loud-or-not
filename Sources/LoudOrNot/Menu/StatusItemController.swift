@@ -19,13 +19,14 @@ final class StatusItemController: NSObject {
 
     private let coordinator: Coordinator
     private let statusItem: NSStatusItem
-    private let popover = NSPopover()
+    private let panel: MenuPanel
     private var cancellables = Set<AnyCancellable>()
 
     init(coordinator: Coordinator, settings: Settings) {
         self.coordinator = coordinator
         Self.seedPositionIfUnset()
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        panel = MenuPanel(content: PanelView(coordinator: coordinator, settings: settings))
         super.init()
 
         statusItem.autosaveName = Self.autosaveName
@@ -33,13 +34,6 @@ final class StatusItemController: NSObject {
         statusItem.button?.action = #selector(togglePanel)
         statusItem.button?.toolTip = "Loud or Not"
         updateIcon()
-
-        let panel = NSHostingController(
-            rootView: PanelView(coordinator: coordinator, settings: settings)
-        )
-        panel.sizingOptions = .preferredContentSize
-        popover.contentViewController = panel
-        popover.behavior = .transient
 
         coordinator.objectWillChange
             .sink { [weak self] _ in
@@ -59,15 +53,8 @@ final class StatusItemController: NSObject {
     }
 
     @objc private func togglePanel() {
-        if popover.isShown {
-            popover.performClose(nil)
-            return
-        }
         guard let button = statusItem.button else { return }
-        // A transient popover only dismisses on an outside click while its app is active, and
-        // a menu bar click does not activate the app by itself.
-        NSApp.activate()
-        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        panel.toggle(under: button)
     }
 
     private func updateIcon() {
