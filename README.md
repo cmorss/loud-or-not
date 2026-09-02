@@ -124,6 +124,12 @@ The glow is drawn on every connected display and follows monitors being plugged 
 or unplugged. It sits above full-screen apps and ignores mouse clicks, so it never
 gets in the way.
 
+If the menu bar icon is missing while the app is running, the menu bar is out of
+room. On a MacBook with a notch, items that do not fit are hidden under it rather
+than squeezed in, and the newest items lose out first. The app places its icon a
+fixed distance from the right edge on first launch so it survives that; if it still
+loses out, hold Command and drag it further right, and the new spot is remembered.
+
 ## The icon
 
 `Scripts/make-icon.swift` draws the icon rather than shipping a pile of PNGs: a dark
